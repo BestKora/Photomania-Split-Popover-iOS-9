@@ -22,58 +22,71 @@
 @property (strong, nonatomic) NSManagedObjectContext *photoDatabaseContext;
 @end
 
-// name of the Flickr fetching background download session
+
+// имя background download сессии для загруки данных с Flickr
 #define FLICKR_FETCH @"Flickr Just Uploaded Fetch"
 
-// how often (in seconds) we fetch new photos if we are in the foreground
+// как часто (в секундах) мы выбираем новые фотографии,
+// когда мы в активном режиме (n the foreground)
 #define FOREGROUND_FLICKR_FETCH_INTERVAL (20*60)
 
-// how long we'll wait for a Flickr fetch to return when we're in the background
+// как долго мы будем ждать выборки из Flickr чтобы вернуться (return),
+// когда мы в фоновом режиме (in the background)
 #define BACKGROUND_FLICKR_FETCH_TIMEOUT (10)
 
 @implementation PhotomaniaAppDelegate
 
 #pragma mark - UIApplicationDelegate
 
-// this is called as soon as our storyboard is read in and we're ready to get started
-// but it's still very early in the game (UI is not yet on screen, for example)
+// это вызывается как только ваш storyboard прочитан и мы готовы стартовать
+// но все равно это еще в самом начале игры (UI еще не на экране, например)
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // when we're in the background, fetch as often as possible (which won't be much)
-    // forgot to include this line in the demo during lecture, but don't forget to include it in your app!
+    // когда мы в фоновом режиме (in the background), производим выборку как можно чаще
+    // (что на самом деле не будет часто)
+    // забыл включить эту строку во время демонстрации на лекции,
+    // но вы не забудьте включить ее в ваше приложение!
     [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:UIApplicationBackgroundFetchIntervalMinimum];
 
-    // we get our managed object context by creating it ourself in a category on PhotomaniaAppDelegate
-    // but in your homework assignment, you must get your context from a UIManagedDocument
-    // (i.e. you cannot use the method createMainQueueManagedObjectContext, or even use that approach)
+    // мы получаем managed object контекст, самостоятельно создавая его в категории PhotomaniaAppDelegate
+    // но в Домашней работе вы должны получить контекст из UIManagedDocument
+    // ( то есть вам не нужно использовать этот метод createMainQueueManagedObjectContext,
+    // или используйте этот подход)
     self.photoDatabaseContext = [self createMainQueueManagedObjectContext];
     
-    // we fire off a Flickr fetch every time we launch (why not?)
+    // мы запускаем выборку из Flickr каждый раз при старте (почему нет?)
     [self startFlickrFetch];
     
-    // this return value has to do with handling URLs from other applications
-    // don't worry about it for now, just return YES
+    // это возвращаемое значение должно что-то делать с обработкой URLs из других приложений
+    // сейчас не беспокойтесь об этом, просто возвращайте YES
     return YES;
 }
 
-// this is called occasionally by the system WHEN WE ARE NOT THE FOREGROUND APPLICATION
-// in fact, it will LAUNCH US if necessary to call this method
-// the system has lots of smarts about when to do this, but it is entirely opaque to us
+// вызывается системой случайно, КОГДА МЫ НЕ ЯВЛЯЕМСЯ FOREGROUND APPLICATION
+// в действительности, система ЗАПУСТИТ НАС, если необходимо вызвать этот метод
+// у системы очень много разумных причин когда это сделать, но для нас это абсолютно непрозрачно
 
 - (void)application:(UIApplication *)application performFetchWithCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
 {
-    // in lecture, we relied on our background flickrDownloadSession to do the fetch by calling [self startFlickrFetch]
-    // that was easy to code up, but pretty weak in terms of how much it will actually fetch (maybe almost never)
-    // that's because there's no guarantee that we'll be allowed to start that discretionary fetcher when we're in the background
-    // so let's simply make a non-discretionary, non-background-session fetch here
-    // we don't want it to take too long because the system will start to lose faith in us as a background fetcher and stop calling this as much
-    // so we'll limit the fetch to BACKGROUND_FETCH_TIMEOUT seconds (also we won't use valuable cellular data)
+    // на лекции мы положились на background flickrDownloadSession,
+    // чтобы выполнить выборку путем вызова[self startFlickrFetch]
+    // это легко кодировать, но очень слабо в том смысле, как часто эта выборка будет реально
+    // происходить (может быть почти никогда)
+    // это потому, что нет гарантий, что нам разрешат стартовать такого слишком своенравного выборщика,
+    // который работает, когда мы находимся в фоновом режиме
+    // так что давайте просто сделаем здесь несвоенравную, не background-session выборку
+    // мы не хотим, чтобы она занимала слишком много времени, потому что система начнет терять доверие к нам
+    // из-за background выборщика и перестанет нас часто вызывать
+    // поэтому мы ограничим время выборки в BACKGROUND_FETCH_TIMEOUT секунд
+    // (а также мы не будем использовать дорогостоящую сотовую передачу данных )
 
     if (self.photoDatabaseContext) {
         NSURLSessionConfiguration *sessionConfig = [NSURLSessionConfiguration ephemeralSessionConfiguration];
         sessionConfig.allowsCellularAccess = NO;
-        sessionConfig.timeoutIntervalForRequest = BACKGROUND_FLICKR_FETCH_TIMEOUT; // want to be a good background citizen!
+        
+        // хотим быть добропорядочными гражданами фонового режима (background citizen)!
+        sessionConfig.timeoutIntervalForRequest = BACKGROUND_FLICKR_FETCH_TIMEOUT;
         NSURLSession *session = [NSURLSession sessionWithConfiguration:sessionConfig];
         NSURLRequest *request = [[NSURLRequest alloc] initWithURL:[FlickrFetcher URLforRecentGeoreferencedPhotos]];
         NSURLSessionDownloadTask *task = [session downloadTaskWithRequest:request
@@ -92,42 +105,49 @@
             }];
         [task resume];
     } else {
-        completionHandler(UIBackgroundFetchResultNoData); // no app-switcher update if no database!
+        // не делаем обновления в переключателе приложений app-switcher, если нет database!
+        completionHandler(UIBackgroundFetchResultNoData);
     }
 }
 
-// this is called whenever a URL we have requested with a background session returns and we are in the background
-// it is essentially waking us up to handle it
-// if we were in the foreground iOS would just call our delegate method and not bother with this
+// это вызывается тогда, когда URL, который мы запросили в background сессии, возвращается,
+// а мы в фоновом режиме (in the background)
+// и он по существу "будит нас от спячки", чтобы обработать результаты URL
+// если мы в активном режиме (in the foreground), iOS просто вызывает наши методы делегата и
+// не беспокоит нас этим совсем
 
 - (void)application:(UIApplication *)application handleEventsForBackgroundURLSession:(NSString *)identifier completionHandler:(void (^)())completionHandler
 {
-    // this completionHandler, when called, will cause our UI to be re-cached in the app switcher
-    // but we should not call this handler until we're done handling the URL whose results are now available
-    // so we'll stash the completionHandler away in a property until we're ready to call it
-    // (see flickrDownloadTasksMightBeComplete for when we actually call it)
+    // когда вызывается этот completionHandler, то осуществляется перерисовка нашего UI
+    // в переключателе приложений (app switcher),
+    // но не следует вызывать этот обработчик до тех пор, пока мы не завершили обработку URL,
+    // результаты которого теперь доступны
+    // поэтому мы припрячем этот completionHandler в специальном свойстве до тех пор,
+    // пока мы не будем готовы его вызвать
+    // (смотри flickrDownloadTasksMightBeComplete, в котором он действительно вызывается)
+
     self.flickrDownloadBackgroundURLSessionCompletionHandler = completionHandler;
 }
 
 #pragma mark - Database Context
 
-// we do some stuff when our Photo database's context becomes available
-// we kick off our foreground NSTimer so that we are fetching every once in a while in the foreground
-// we post a notification to let others know the context is available
-
+// мы можем что-то делать с базой данных, если контекст базы данных фотографий доступен
+// мы запускаем foreground таймер NSTimer, чтобы мы могли делать выборку
+// каждый раз в определенное время в активном режиме (in the foreground)
+// мы посылаем уведомление (notification), давая знать другим, что контекст доступен
 - (void)setPhotoDatabaseContext:(NSManagedObjectContext *)photoDatabaseContext
 {
     _photoDatabaseContext = photoDatabaseContext;
     
-    // every time the context changes, we'll restart our timer
-    // so kill (invalidate) the current one
-    // (we didn't get to this line of code in lecture, sorry!)
+    // каждый раз при изменении контекста, мы заново стартуем наш таймер,
+    // убивая (invalidate) текущий таймер
+    // (к сожалению, мы не получили эту строку кода в лекции!)
     [self.flickrForegroundFetchTimer invalidate];
     self.flickrForegroundFetchTimer = nil;
     
     if (self.photoDatabaseContext)
     {
-        // this timer will fire only when we are in the foreground
+         // этот таймер будет запускаться только когда мы в активном режиме (in the foreground)
         self.flickrForegroundFetchTimer = [NSTimer scheduledTimerWithTimeInterval:FOREGROUND_FLICKR_FETCH_INTERVAL
                                          target:self
                                        selector:@selector(startFlickrFetch:)
@@ -135,10 +155,11 @@
                                         repeats:YES];
     }
     
-    // let everyone who might be interested know this context is available
-    // this happens very early in the running of our application
-    // it would make NO SENSE to listen to this radio station in a View Controller that was segued to, for example
-    // (but that's okay because a segued-to View Controller would presumably be "prepared" by being given a context to work in)
+    // позволяем всем, кто интересуется, узнать, что этот контекст доступен
+    // Это происходит очень рано, при старте нашего приложения
+    // Возможно, что НЕ ИМЕЕТ СМЫСЛА слушать эту радиостанцию в тех View Controller, на которые, например,
+    // "переезжают" (segued to) (но это вполне естественно, потому что View Controller на которые "переезжают",
+    // предположительно "подготавливаются" путем передачи им контекста для работы)
     NSDictionary *userInfo = self.photoDatabaseContext ? @{ PhotoDatabaseAvailabilityContext : self.photoDatabaseContext } : nil;
     [[NSNotificationCenter defaultCenter] postNotificationName:PhotoDatabaseAvailabilityNotification
                                                         object:self
@@ -147,58 +168,67 @@
 
 #pragma mark - Flickr Fetching
 
-// this will probably not work (task = nil) if we're in the background, but that's okay
-// (we do our background fetching in performFetchWithCompletionHandler:)
-// it will always work when we are the foreground (active) application
+// Это, возможно, не будет работать (task = nil), если мы находимся в background, но это нормально
+// (мы выполняем выборку в фоновом режиме в performFetchWithCompletionHandler:)
+// она всегда работает, когда мы является foreground (активным) приложением
 
 - (void)startFlickrFetch
 {
-    // getTasksWithCompletionHandler: is ASYNCHRONOUS
-    // but that's okay because we're not expecting startFlickrFetch to do anything synchronously anyway
-    [self.flickrDownloadSession getTasksWithCompletionHandler:^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
-        // let's see if we're already working on a fetch ...
+    // getTasksWithCompletionHandler: является ASYNCHRONOUS (асихронной)
+    // и это нормально, потому что не ожидаем, что startFlickrFetch будет делать синхронно в любом случае
+       [self.flickrDownloadSession getTasksWithCompletionHandler:^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
+           // давайте посмотрим, может быть выборки уже работают ...
         if (![downloadTasks count]) {
-            // ... not working on a fetch, let's start one up
+              // ... выборки не работают и мы запускаем одну
             NSURLSessionDownloadTask *task = [self.flickrDownloadSession downloadTaskWithURL:[FlickrFetcher URLforRecentGeoreferencedPhotos]];
             task.taskDescription = FLICKR_FETCH;
             [task resume];
         } else {
-            // ... we are working on a fetch (let's make sure it (they) is (are) running while we're here)
+            // ... выборки уже работают (давайте убедимся, она (они) работает(ют), когда мы находимся здесь)
             for (NSURLSessionDownloadTask *task in downloadTasks) [task resume];
         }
     }];
 }
 
-- (void)startFlickrFetch:(NSTimer *)timer // NSTimer target/action always takes an NSTimer as an argument
+// NSTimer target/action всегда использует NSTimer как аргумент
+- (void)startFlickrFetch:(NSTimer *)timer
 {
     [self startFlickrFetch];
 }
 
-// the getter for the flickrDownloadSession @property
 
-- (NSURLSession *)flickrDownloadSession // the NSURLSession we will use to fetch Flickr data in the background
+// getter для свойства flickrDownloadSession
+// эту NSURLSession мы будем использовать для выборки Flickr данных в background
+- (NSURLSession *)flickrDownloadSession
 {
     if (!_flickrDownloadSession) {
-        static dispatch_once_t onceToken; // dispatch_once ensures that the block will only ever get executed once per application launch
+         // dispatch_once обеспечивает однократный запуск блока (синглтон)
+        static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
-            // notice the configuration here is "backgroundSessionConfiguration:"
-            // that means that we will (eventually) get the results even if we are not the foreground application
-            // even if our application crashed, it would get relaunched (eventually) to handle this URL's results!
+            
+            // заметьте, что конфигурация здесь "backgroundSessionConfiguration:"
+            // что означает, что мы получим в конце концов результаты,
+            // даже если мы не foreground приложение,
+            // даже если приложение закончится аварийно, оно будет перезапушено (в конце концов)
+            // для обработки URL результатов!
+
             NSURLSessionConfiguration *urlSessionConfig = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:FLICKR_FETCH];
+
+            // ДОЛЖЕН быть делегат для background configurations, следовательно  delegate:self
+            // nil для delegateQueue означает "случайная, не main queue очередь"
             _flickrDownloadSession = [NSURLSession sessionWithConfiguration:urlSessionConfig
-                                                                   delegate:self    // we MUST have a delegate for background configurations
-                                                              delegateQueue:nil];   // nil means "a random, non-main-queue queue"
+                                                                   delegate:self
+                                                              delegateQueue:nil];
         });
     }
     return _flickrDownloadSession;
 }
 
-// standard "get photo information from Flickr URL" code
-
+// стандартный код для "получаем информацию о фотографиях с Flickr URL"
 - (NSArray *)flickrPhotosAtURL:(NSURL *)url
 {
     NSDictionary *flickrPropertyList;
-    NSData *flickrJSONData = [NSData dataWithContentsOfURL:url];  // will block if url is not local!
+    NSData *flickrJSONData = [NSData dataWithContentsOfURL:url];   // будет блокировка, если url - не локальный!
     if (flickrJSONData) {
         flickrPropertyList = [NSJSONSerialization JSONObjectWithData:flickrJSONData
                                                                            options:0
@@ -207,9 +237,10 @@
     return [flickrPropertyList valueForKeyPath:FLICKR_RESULTS_PHOTOS];
 }
 
-// gets the Flickr photo dictionaries out of the url and puts them into Core Data
-// this was moved here after lecture to give you an example of how to declare a method that takes a block as an argument
-// and because we now do this both as part of our background session delegate handler and when background fetch happens
+// получаем словари с Flickr фотографиями из url и размещаем в Core Data
+// после лекции это переместили сюда, чтобы дать вам пример, как декларировать метод, аргументом которого является блок,
+// и потому что этот метод вызываеися дважды как в части обработчика делегата background session,
+// так и в случае, когда происходит background fetch
 
 - (void)loadFlickrPhotosFromLocalURL:(NSURL *)localFile
                          intoContext:(NSManagedObjectContext *)context
@@ -219,7 +250,7 @@
         NSArray *photos = [self flickrPhotosAtURL:localFile];
         [context performBlock:^{
             [Photo loadPhotosFromFlickrArray:photos intoManagedObjectContext:context];
-            [context save:NULL]; // NOT NECESSARY if this is a UIManagedDocument's context
+            [context save:NULL]; // НЕТ НЕОБХОДИМОСТИ, если у вас контекст базы данных от UIManagedDocument
             if (whenDone) whenDone();
         }];
     } else {
@@ -229,14 +260,14 @@
 
 #pragma mark - NSURLSessionDownloadDelegate
 
-// required by the protocol
+// обязательный метод протокола
 - (void)URLSession:(NSURLSession *)session
       downloadTask:(NSURLSessionDownloadTask *)downloadTask
 didFinishDownloadingToURL:(NSURL *)localFile
 {
-    // we shouldn't assume we're the only downloading going on ...
+    // нам не следует предполагать, что мы единственные осуществляем загрузку в данный момент ...
     if ([downloadTask.taskDescription isEqualToString:FLICKR_FETCH]) {
-        // ... but if this is the Flickr fetching, then process the returned data
+        // ... но если это Flickr выборка, то обрабатываем возвращенные данные
         [self loadFlickrPhotosFromLocalURL:localFile
                                intoContext:self.photoDatabaseContext
                        andThenExecuteBlock:^{
@@ -246,28 +277,28 @@ didFinishDownloadingToURL:(NSURL *)localFile
     }
 }
 
-// required by the protocol
+// обязательный метод протокола
 - (void)URLSession:(NSURLSession *)session
       downloadTask:(NSURLSessionDownloadTask *)downloadTask
  didResumeAtOffset:(int64_t)fileOffset
 expectedTotalBytes:(int64_t)expectedTotalBytes
 {
-    // we don't support resuming an interrupted download task
+    // мы не будем поддерживать возобновление прерванного задания загрузки
 }
 
-// required by the protocol
+// обязательный метод протокола
 - (void)URLSession:(NSURLSession *)session
       downloadTask:(NSURLSessionDownloadTask *)downloadTask
       didWriteData:(int64_t)bytesWritten
  totalBytesWritten:(int64_t)totalBytesWritten
 totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
 {
-    // we don't report the progress of a download in our UI, but this is a cool method to do that with
+       // мы не будем отображать процесс загрузки на нашем UI, но это действительно крутой метод
 }
 
-// not required by the protocol, but we should definitely catch errors here
-// so that we can avoid crashes
-// and also so that we can detect that download tasks are (might be) complete
+// не требуется протоколом, но здесь следует ловить ошибки
+// чтобы избежать аварийного завершения
+// и также мы можем обнаружить, что задачи загрузки закончены (могут быть закончены)
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
     if (error && (session == self.flickrDownloadSession)) {
@@ -276,25 +307,26 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
     }
 }
 
-// this is "might" in case some day we have multiple downloads going on at once
+// этот "может быть" на случай, если когда-то у нас будет много загрузок одновременно
 
 - (void)flickrDownloadTasksMightBeComplete
 {
     if (self.flickrDownloadBackgroundURLSessionCompletionHandler) {
         [self.flickrDownloadSession getTasksWithCompletionHandler:^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
-            // we're doing this check for other downloads just to be theoretically "correct"
-            //  but we don't actually need it (since we only ever fire off one download task at a time)
-            // in addition, note that getTasksWithCompletionHandler: is ASYNCHRONOUS
-            //  so we must check again when the block executes if the handler is still not nil
-            //  (another thread might have sent it already in a multiple-tasks-at-once implementation)
-            if (![downloadTasks count]) {  // any more Flickr downloads left?
-                // nope, then invoke flickrDownloadBackgroundURLSessionCompletionHandler (if it's still not nil)
+            
+            // мы делаем эту проверку для других загрузок, чтобы чисто теоретически "быть корректными"
+            // но в действительности мы в ней не нуждаемся, (так как мы запускаем  только одну загрузку за раз)
+            // дополнительно заметим, что getTasksWithCompletionHandler: является ASYNCHRONOUS
+            // так что мы должны во время выполнения блока опять проверить, не установлен ли обработчик в nil
+            //  (другой поток может уже послать его при multiple-tasks-at-once реализации)
+            if (![downloadTasks count]) {  // остались ли еще какие-нибудь Flickr загрузки?
+                // нет, тогда вовлекаем flickrDownloadBackgroundURLSessionCompletionHandler (если он все еще не nil)
                 void (^completionHandler)() = self.flickrDownloadBackgroundURLSessionCompletionHandler;
                 self.flickrDownloadBackgroundURLSessionCompletionHandler = nil;
                 if (completionHandler) {
                     completionHandler();
                 }
-            } // else other downloads going, so let them call this method when they finish
+            }// иначе другие загрузки продолжаются, так что позволим им вызвать этот метод, когда они финишируют
         }];
     }
 }
