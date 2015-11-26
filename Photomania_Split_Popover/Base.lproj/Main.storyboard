@@ -19,7 +19,7 @@
             </objects>
             <point key="canvasLocation" x="-1006.25" y="-261.9140625"/>
         </scene>
-        <!--Shutterbug-->
+        <!--Photos-->
         <scene sceneID="0ul-m7-eiL">
             <objects>
                 <tableViewController id="DLv-Z2-bmi" customClass="PhotosByPhotographerCDTVC" sceneMemberID="viewController">
@@ -61,7 +61,7 @@
                             <outlet property="delegate" destination="DLv-Z2-bmi" id="JNq-GB-kSC"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Shutterbug" id="ELF-1e-TNm"/>
+                    <navigationItem key="navigationItem" title="Photos" id="ELF-1e-TNm"/>
                     <refreshControl key="refreshControl" opaque="NO" multipleTouchEnabled="YES" contentMode="center" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" id="v2U-F5-PfE">
                         <autoresizingMask key="autoresizingMask"/>
                         <connections>
@@ -71,7 +71,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="bmI-WN-wah" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1327" y="-661"/>
+            <point key="canvasLocation" x="1133" y="-656"/>
         </scene>
         <!--URL View Controller-->
         <scene sceneID="nFQ-8B-UnJ">
@@ -106,7 +106,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Z9f-9d-sxa" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1605" y="97"/>
+            <point key="canvasLocation" x="1133" y="97"/>
         </scene>
         <!--Image View Controller-->
         <scene sceneID="DZv-BI-GXS">
@@ -154,7 +154,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ju2-s1-E9e" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="492.1875" y="97.8515625"/>
+            <point key="canvasLocation" x="410" y="97"/>
         </scene>
         <!--Photographers-->
         <scene sceneID="RVB-HV-Eaq">
@@ -172,12 +172,12 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cWv-Ig-bm7" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-131" y="-656"/>
+            <point key="canvasLocation" x="-281" y="-656"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="BLn-4h-gvJ">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="bwT-uK-TIJ" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="detailNavigation" automaticallyAdjustsScrollViewInsets="NO" id="bwT-uK-TIJ" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="RFx-Ms-20V">
                         <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
@@ -190,7 +190,7 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="eYG-rl-SCy" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-159.375" y="97.8515625"/>
+            <point key="canvasLocation" x="-281" y="97"/>
         </scene>
         <!--Photographer-->
         <scene sceneID="oPu-Z4-1vc">
@@ -240,7 +240,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="KFu-2U-qFC" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="659" y="-661"/>
+            <point key="canvasLocation" x="410" y="-656"/>
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>

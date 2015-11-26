@@ -11,11 +11,11 @@
 #import "FlickrFetcher.h"
 #import "Photo+Flickr.h"
 #import "PhotoDatabaseAvailability.h"
+#import "ImageViewController.h"
+#import "PhotosByPhotographerCDTVC.h"
 
-// THIS FILE WANTS TO BE VERY WIDE BECAUSE IT HAS A LOT OF COMMENTS THAT ARE ATTACHED ONTO THE END OF LINES--MAKE THIS COMMENT FIT ON ONE LINE.
-// (or turn off line wrapping)
+@interface PhotomaniaAppDelegate () <UISplitViewControllerDelegate, NSURLSessionDownloadDelegate>
 
-@interface PhotomaniaAppDelegate() <NSURLSessionDownloadDelegate>
 @property (copy, nonatomic) void (^flickrDownloadBackgroundURLSessionCompletionHandler)();
 @property (strong, nonatomic) NSURLSession *flickrDownloadSession;
 @property (strong, nonatomic) NSTimer *flickrForegroundFetchTimer;
@@ -43,6 +43,11 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
+    UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
+    navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
+    splitViewController.delegate = self;
+
     // когда мы в фоновом режиме (in the background), производим выборку как можно чаще
     // (что на самом деле не будет часто)
     // забыл включить эту строку во время демонстрации на лекции,
@@ -54,9 +59,10 @@
     // ( то есть вам не нужно использовать этот метод createMainQueueManagedObjectContext,
     // или используйте этот подход)
     self.photoDatabaseContext = [self createMainQueueManagedObjectContext];
-    
+   
     // мы запускаем выборку из Flickr каждый раз при старте (почему нет?)
     [self startFlickrFetch];
+    
     
     // это возвращаемое значение должно что-то делать с обработкой URLs из других приложений
     // сейчас не беспокойтесь об этом, просто возвращайте YES
@@ -128,6 +134,56 @@
 
     self.flickrDownloadBackgroundURLSessionCompletionHandler = completionHandler;
 }
+
+#pragma mark - Split view Controller
+
+- (UIViewController *)splitViewController:(UISplitViewController *)splitViewController separateSecondaryViewControllerFromPrimaryViewController:(UIViewController *)primaryViewController {
+    
+    if ([primaryViewController isKindOfClass:[UINavigationController class]]) {
+        if ( [[(UINavigationController *)primaryViewController topViewController] isKindOfClass:[PhotosByPhotographerCDTVC class]]) {
+            
+               UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+                 UINavigationController *detailView = [storyboard instantiateViewControllerWithIdentifier:@"detailNavigation"];
+            
+            // Обеспечиваем появление обратной кнопки
+            UIViewController *controller = [detailView visibleViewController];
+            controller.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
+            controller.navigationItem.leftItemsSupplementBackButton = YES;
+            
+            return detailView;
+        }
+    }
+    return  nil;
+}
+
+- (BOOL)splitViewController:(UISplitViewController *)splitViewController collapseSecondaryViewController:(UIViewController *)secondaryViewController ontoPrimaryViewController:(UIViewController *)primaryViewController {
+    
+    if ([secondaryViewController isKindOfClass:[UINavigationController class]]) {
+        
+      if ( [[(UINavigationController *)secondaryViewController topViewController] isKindOfClass:[ImageViewController class]]) {
+        
+       if( ([(ImageViewController *)[(UINavigationController *)secondaryViewController topViewController] imageURL] == nil)) {
+        
+        // Возвращаем YES, чтобы показать, что мы сами будем управлять Detail для collapsed интерфейса и ничего не делаем;
+        // следовательно Detail будет отвергнуто.
+        return YES;
+        }
+          if ([primaryViewController isKindOfClass:[UINavigationController class]]) {
+              [ (UINavigationController *)primaryViewController setNavigationBarHidden:false animated:false];
+          }
+
+      }
+    }
+        return NO;
+}
+/*
+- (UISplitViewControllerDisplayMode)targetDisplayModeForActionInSplitViewController:(UISplitViewController *)svc {
+    if (svc.displayMode == UISplitViewControllerDisplayModePrimaryOverlay || svc.displayMode == UISplitViewControllerDisplayModePrimaryHidden) {
+        return UISplitViewControllerDisplayModeAllVisible;
+    }
+    return UISplitViewControllerDisplayModePrimaryHidden;
+}
+ */
 
 #pragma mark - Database Context
 
@@ -330,5 +386,6 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
         }];
     }
 }
+
 
 @end

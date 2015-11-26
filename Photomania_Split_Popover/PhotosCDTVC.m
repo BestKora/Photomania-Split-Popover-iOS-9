@@ -38,17 +38,23 @@
     Photo *photo = [self.fetchedResultsController objectAtIndexPath:indexPath];
     
     // заметьте, что мы не проверяем здесь идентификатор segue
-    // легко себе представить два различных segue от этого класса к ImageViewController
-    // например, они могут применяться для различной сортировки оттенков краски или еще чего-нибудь
-    // но в данный момент у нас единственный segue, так что нам не надо проверять его идентификатор
+    // легко представить два различных segue от этого класса к
+    // ImageViewController, но в данный момент у нас единственный segue,
+    // так что нам не надо проверять его идентификатор
     
     id ivc = vc;
+    
     if ([vc isKindOfClass:[UINavigationController class]]) {
         ivc = [(UINavigationController  *)vc topViewController] ;
     }
+    
     if ([ivc isKindOfClass:[ImageViewController class]]) {
         ((ImageViewController *)ivc).imageURL = [NSURL URLWithString:photo.imageURL];
         ((ImageViewController *)ivc).title = photo.title;
+        
+         ((ImageViewController *)ivc).navigationItem.leftBarButtonItem =
+                                          self.splitViewController.displayModeButtonItem;
+         ((ImageViewController *)ivc).navigationItem.leftItemsSupplementBackButton = YES;
     }
 }
 
@@ -63,7 +69,7 @@
                        forSegue:segue.identifier
                   fromIndexPath:indexPath];
 }
-/*
+
 // boilerplate
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -75,5 +81,5 @@
                       fromIndexPath:indexPath];
     }
 }
-*/
+
 @end

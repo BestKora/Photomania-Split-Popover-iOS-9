@@ -27,8 +27,8 @@
 {
     [super viewDidLoad];
     [self.scrollView addSubview:self.imageView];
-    self.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
-    self.navigationItem.leftItemsSupplementBackButton = YES;
+//    self.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
+//    self.navigationItem.leftItemsSupplementBackButton = YES;
 
 }
 
@@ -163,12 +163,8 @@
         [task resume]; // don't forget that all NSURLSession tasks start out suspended!
     }
 }
-/*
-- (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller {
-    return UIModalPresentationNone;
-}
-*/
-- (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller traitCollection:(UITraitCollection *)traitCollection
+
+- (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller     traitCollection:(UITraitCollection *)traitCollection
  {
      return UIModalPresentationNone;
 }
