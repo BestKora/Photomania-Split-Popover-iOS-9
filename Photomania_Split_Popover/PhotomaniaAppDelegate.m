@@ -41,12 +41,23 @@
 // это вызывается как только ваш storyboard прочитан и мы готовы стартовать
 // но все равно это еще в самом начале игры (UI еще не на экране, например)
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+- (BOOL)application:(UIApplication *)application
+                               didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
+    UISplitViewController *splitViewController =
+                                     (UISplitViewController *)self.window.rootViewController;
+    UINavigationController *navigationController =
+                                            [splitViewController.viewControllers lastObject];
+    navigationController.topViewController.navigationItem.leftBarButtonItem =
+                                                   splitViewController.displayModeButtonItem;
+    navigationController.topViewController.navigationItem.leftItemsSupplementBackButton = YES;
+    
+    splitViewController.delegate = self;
+
+  /*  UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
     UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
     navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
-    splitViewController.delegate = self;
+    splitViewController.delegate = self;*/
 
     // когда мы в фоновом режиме (in the background), производим выборку как можно чаще
     // (что на самом деле не будет часто)
@@ -140,10 +151,12 @@
 - (UIViewController *)splitViewController:(UISplitViewController *)splitViewController separateSecondaryViewControllerFromPrimaryViewController:(UIViewController *)primaryViewController {
     
     if ([primaryViewController isKindOfClass:[UINavigationController class]]) {
-        if ( [[(UINavigationController *)primaryViewController topViewController] isKindOfClass:[PhotosByPhotographerCDTVC class]]) {
+        if ( [[(UINavigationController *)primaryViewController topViewController]
+                                                    isKindOfClass:[PhotosByPhotographerCDTVC class]]) {
             
                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-                 UINavigationController *detailView = [storyboard instantiateViewControllerWithIdentifier:@"detailNavigation"];
+                 UINavigationController *detailView =
+                             [storyboard instantiateViewControllerWithIdentifier:@"detailNavigation"];
             
             // Обеспечиваем появление обратной кнопки
             UIViewController *controller = [detailView visibleViewController];
@@ -156,34 +169,31 @@
     return  nil;
 }
 
-- (BOOL)splitViewController:(UISplitViewController *)splitViewController collapseSecondaryViewController:(UIViewController *)secondaryViewController ontoPrimaryViewController:(UIViewController *)primaryViewController {
+- (BOOL)splitViewController:(UISplitViewController *)splitViewController
+                         collapseSecondaryViewController:(UIViewController *)secondaryViewController
+                               ontoPrimaryViewController:(UIViewController *)primaryViewController {
     
     if ([secondaryViewController isKindOfClass:[UINavigationController class]]) {
         
-      if ( [[(UINavigationController *)secondaryViewController topViewController] isKindOfClass:[ImageViewController class]]) {
+      if ( [[(UINavigationController *)secondaryViewController topViewController]
+                                                       isKindOfClass:[ImageViewController class]]) {
         
-       if( ([(ImageViewController *)[(UINavigationController *)secondaryViewController topViewController] imageURL] == nil)) {
+       if( ([(ImageViewController *)[(UINavigationController *)secondaryViewController
+                                                             topViewController] imageURL] == nil)) {
         
-        // Возвращаем YES, чтобы показать, что мы сами будем управлять Detail для collapsed интерфейса и ничего не делаем;
-        // следовательно Detail будет отвергнуто.
+        // Возвращаем YES, чтобы показать, что мы сами будем управлять Detail для collapsed интерфейса
+        //  и ничего не делаем;  следовательно Detail будет отвергнуто.
         return YES;
         }
           if ([primaryViewController isKindOfClass:[UINavigationController class]]) {
-              [ (UINavigationController *)primaryViewController setNavigationBarHidden:false animated:false];
+              [ (UINavigationController *)primaryViewController
+                                                       setNavigationBarHidden:false animated:false];
           }
 
       }
     }
         return NO;
 }
-/*
-- (UISplitViewControllerDisplayMode)targetDisplayModeForActionInSplitViewController:(UISplitViewController *)svc {
-    if (svc.displayMode == UISplitViewControllerDisplayModePrimaryOverlay || svc.displayMode == UISplitViewControllerDisplayModePrimaryHidden) {
-        return UISplitViewControllerDisplayModeAllVisible;
-    }
-    return UISplitViewControllerDisplayModePrimaryHidden;
-}
- */
 
 #pragma mark - Database Context
 
