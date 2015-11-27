@@ -9,7 +9,9 @@
 #import "ImageViewController.h"
 #import "URLViewController.h"
 
-@interface ImageViewController () <UIScrollViewDelegate, UISplitViewControllerDelegate,UIPopoverPresentationControllerDelegate>
+@interface ImageViewController () <UIScrollViewDelegate,
+                                   UIPopoverPresentationControllerDelegate>
+
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) UIImage *image;
 @property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
@@ -27,8 +29,6 @@
 {
     [super viewDidLoad];
     [self.scrollView addSubview:self.imageView];
-//    self.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
-//    self.navigationItem.leftItemsSupplementBackButton = YES;
 
 }
 
@@ -53,22 +53,26 @@
 
 - (void)setImage:(UIImage *)image
 {
-    self.imageView.image = image; // does not change the frame of the UIImageView
+    self.imageView.image = image; // не изменяет frame UIImageView
 
-    // had to add these two lines in Shutterbug to fix a bug in "reusing" ImageViewController's MVC
+    // нужно добавить две строки кода в Shutterbug для исправления ошибки
+    // при повторном использовании ("reusing") ImageViewController's MVC
     self.scrollView.zoomScale = 1.0;
     self.imageView.frame = CGRectMake(0, 0, image.size.width, image.size.height);
     
-    // self.scrollView could be nil on the next line if outlet-setting has not happened yet
+    // self.scrollView будет равен nil на следующей строке кода,
+    // если установка outlet еще не произошла
     self.scrollView.contentSize = self.image ? self.image.size : CGSizeZero;
 
     // в портретной ориентации на iPad в split view,
     //   к сожалению, master может быть доступен при открытом Popover
     //   (поэтому удаляем URL, если кто-то изменил image и мы попадаем в этот setter)
     //---iOS 8 и iOS 9----
+    
     if (self.presentedViewController) {
           [self.presentedViewController dismissViewControllerAnimated:YES completion:nil];
     }
+    
     [self.spinner stopAnimating];
 }
 
@@ -102,11 +106,16 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
     if ([segue.destinationViewController isKindOfClass:[URLViewController class]]) {
-        URLViewController *urlvc = (URLViewController *)segue.destinationViewController;
-            urlvc.url = self.imageURL;
-        UIPopoverPresentationController *ppc = urlvc.popoverPresentationController;
-        ppc.delegate = self;
-
+        URLViewController *urlvc =
+                              (URLViewController *)segue.destinationViewController;
+        urlvc.url = self.imageURL;
+        
+        if (urlvc.popoverPresentationController) {
+            UIPopoverPresentationController *ppc =
+                                               urlvc.popoverPresentationController;
+            ppc.delegate = self;
+            
+        }
     }
 }
 
@@ -164,8 +173,11 @@
     }
 }
 
-- (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller     traitCollection:(UITraitCollection *)traitCollection
+- (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:
+                                               (UIPresentationController *)controller
+                               traitCollection:(UITraitCollection *)traitCollection
  {
      return UIModalPresentationNone;
 }
+
 @end

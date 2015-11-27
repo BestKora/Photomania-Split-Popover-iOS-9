@@ -34,8 +34,11 @@
 }
 
 -(CGSize)preferredContentSize {
+    
     if (self.urlTextView != nil && self.presentingViewController != nil ) {
-        return [self.urlTextView sizeThatFits:self.presentingViewController.view.bounds.size];
+        
+        return [self.urlTextView
+                 sizeThatFits:self.presentingViewController.view.bounds.size];
     }
         else {
             return super.preferredContentSize;
