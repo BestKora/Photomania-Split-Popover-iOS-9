@@ -65,7 +65,7 @@
                                               objectAtIndexPath:indexPath];
     
     // заметьте, что мы не проверяем здесь идентификатор segue
-    // возможно это правильноro ... трудно представить другой способ,
+    // возможно это неправильноro, но трудно представить другой способ,
     // каким бы этот класс мог бы "переехать" на  PhotosByPhotographerCDTVC
     if ([vc isKindOfClass:[PhotosByPhotographerCDTVC class]]) {
         PhotosByPhotographerCDTVC *pbpcdtvc = (PhotosByPhotographerCDTVC *)vc;
