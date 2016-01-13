@@ -158,8 +158,13 @@
     if ([primaryViewController isKindOfClass:[UINavigationController class]]) {
         if ( [[(UINavigationController *)primaryViewController topViewController]
                                                     isKindOfClass:[PhotosByPhotographerCDTVC class]]) {
-            
-               UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+            //-------- autoselectedPhoto----
+            PhotosByPhotographerCDTVC *masterView = ( PhotosByPhotographerCDTVC *)[(UINavigationController *)primaryViewController topViewController];
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
+         
+            Photo *autoselectedPhoto = (Photo *)[masterView.fetchedResultsController objectAtIndexPath:indexPath];
+            //-------------------------------
+                          UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
                  UINavigationController *detailView =
                              [storyboard instantiateViewControllerWithIdentifier:@"detailNavigation"];
             
@@ -167,6 +172,16 @@
             UIViewController *controller = [detailView visibleViewController];
             controller.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
             controller.navigationItem.leftItemsSupplementBackButton = YES;
+            //---устанавливаем фотографию для autoselectedPhoto----
+            if ([controller isKindOfClass:[ImageViewController class]]) {
+                ((ImageViewController *)controller).imageURL = [NSURL URLWithString:autoselectedPhoto.imageURL];
+                ((ImageViewController *)controller).title = autoselectedPhoto.title;
+            }
+             //---выбираем autoselectedPhoto----
+            if (autoselectedPhoto) {
+                [masterView.tableView  selectRowAtIndexPath:indexPath animated:YES scrollPosition:0];
+            }
+            //------
             
             return detailView;
         }
