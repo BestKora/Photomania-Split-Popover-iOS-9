@@ -153,33 +153,39 @@
 
 #pragma mark - Split view Controller
 
-- (UIViewController *)splitViewController:(UISplitViewController *)splitViewController separateSecondaryViewControllerFromPrimaryViewController:(UIViewController *)primaryViewController {
+- (UIViewController *)splitViewController:(UISplitViewController *)splitViewController
+                      separateSecondaryViewControllerFromPrimaryViewController:
+                                          (UIViewController *)primaryViewController {
     
     if ([primaryViewController isKindOfClass:[UINavigationController class]]) {
         if ( [[(UINavigationController *)primaryViewController topViewController]
-                                                    isKindOfClass:[PhotosByPhotographerCDTVC class]]) {
-            //-------- autoselectedPhoto----
-            PhotosByPhotographerCDTVC *masterView = ( PhotosByPhotographerCDTVC *)[(UINavigationController *)primaryViewController topViewController];
+              isKindOfClass:[PhotosByPhotographerCDTVC class]]) {
+            //--------Выбираем autoselectedPhoto----
+            PhotosByPhotographerCDTVC *masterView = (PhotosByPhotographerCDTVC *)
+            [(UINavigationController *)primaryViewController topViewController];
             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:0];
-         
-            Photo *autoselectedPhoto = (Photo *)[masterView.fetchedResultsController objectAtIndexPath:indexPath];
+            
+            Photo *autoselectedPhoto = (Photo *)
+            [masterView.fetchedResultsController objectAtIndexPath:indexPath];
             //-------------------------------
-                          UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-                 UINavigationController *detailView =
-                             [storyboard instantiateViewControllerWithIdentifier:@"detailNavigation"];
+            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+            UINavigationController *detailView =
+            [storyboard instantiateViewControllerWithIdentifier:@"detailNavigation"];
             
             // Обеспечиваем появление обратной кнопки
             UIViewController *controller = [detailView visibleViewController];
             controller.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
             controller.navigationItem.leftItemsSupplementBackButton = YES;
-            //---устанавливаем фотографию для autoselectedPhoto----
+            
+            //---устанавливаем фотографию для autoselectedPhoto в качестве Модели----
             if ([controller isKindOfClass:[ImageViewController class]]) {
-                ((ImageViewController *)controller).imageURL = [NSURL URLWithString:autoselectedPhoto.imageURL];
-                ((ImageViewController *)controller).title = autoselectedPhoto.title;
-            }
-             //---выбираем autoselectedPhoto----
-            if (autoselectedPhoto) {
-                [masterView.tableView  selectRowAtIndexPath:indexPath animated:YES scrollPosition:0];
+                
+                if (autoselectedPhoto) {
+                    [masterView.tableView  selectRowAtIndexPath:indexPath animated:YES scrollPosition:0];
+                    ((ImageViewController *)controller).imageURL =
+                                                        [NSURL URLWithString:autoselectedPhoto.imageURL];
+                    ((ImageViewController *)controller).title = autoselectedPhoto.title;
+                }
             }
             //------
             
