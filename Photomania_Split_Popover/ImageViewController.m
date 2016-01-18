@@ -172,12 +172,10 @@
         [task resume]; // don't forget that all NSURLSession tasks start out suspended!
     }
 }
-
 - (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:
-                                               (UIPresentationController *)controller
-                               traitCollection:(UITraitCollection *)traitCollection
- {
-     return UIModalPresentationNone;
+(UIPresentationController *)controller
+                                                               traitCollection:(UITraitCollection *)traitCollection
+{
+    return UIModalPresentationNone;
 }
-
 @end
