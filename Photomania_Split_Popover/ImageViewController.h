@@ -8,12 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
-// will segue its imageURL to a URLViewController
-// (and supports doing so in a popover if desired)
+// будет передавать свой imageURL при "переезде" на URLViewController
+// (это показывается в popover)
 
 @interface ImageViewController : UIViewController
 
-// Model for this MVC ... URL of an image to display
+// Модель для этого MVC ... URL изображения image для показа на экране
 @property (nonatomic, strong) NSURL *imageURL;
 
 @end

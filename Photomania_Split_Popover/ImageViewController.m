@@ -22,7 +22,7 @@
 
 #pragma mark - View Controller Lifecycle
 
-// add the UIImageView to the MVC's View
+// добавляем UIImageView к MVC's View
 
 - (void)viewDidLoad
 {
@@ -30,7 +30,8 @@
     [self.scrollView addSubview:self.imageView];
 
 }
-// для эффективности мы будем действительно загружать image
+
+// для эффективности мы будем действительно загружать image с Flickr.com
 // только тогда, когда мы уже собираемся выйти на экран
 -(void)viewWillAppear:(BOOL)animated{
     [super viewWillAppear:animated];
@@ -38,9 +39,10 @@
        [self startDownloadingImage];
     }
 }
+
 #pragma mark - Properties
 
-// lazy instantiation
+// lazy instantiation (отложенное получение экземпляра класса)
 
 - (UIImageView *)imageView
 {
@@ -87,7 +89,7 @@
 {
     _scrollView = scrollView;
     
-    // next three lines are necessary for zooming
+    // следующие три строки необходимы для изменения масштаба (zooming)
     _scrollView.minimumZoomScale = 0.2;
     _scrollView.maximumZoomScale = 2.0;
     _scrollView.delegate = self;
@@ -101,7 +103,6 @@
 #pragma mark - UIScrollViewDelegate
 
 // обязательный zooming метод в UIScrollViewDelegate protocol
-
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
 {
     return self.imageView;
