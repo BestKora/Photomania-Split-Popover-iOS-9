@@ -16,7 +16,7 @@
 
 @interface PhotomaniaAppDelegate () <UISplitViewControllerDelegate, NSURLSessionDownloadDelegate>
 
-@property (copy, nonatomic) void (^flickrDownloadBackgroundURLSessionCompletionHandler)();
+@property (copy, nonatomic) void (^flickrDownloadBackgroundURLSessionCompletionHandler)(void);
 @property (strong, nonatomic) NSURLSession *flickrDownloadSession;
 @property (strong, nonatomic) NSTimer *flickrForegroundFetchTimer;
 @property (strong, nonatomic) NSManagedObjectContext *photoDatabaseContext;
@@ -138,7 +138,7 @@
 // если мы в активном режиме (in the foreground), iOS просто вызывает наши методы делегата и
 // не беспокоит нас этим совсем
 
-- (void)application:(UIApplication *)application handleEventsForBackgroundURLSession:(NSString *)identifier completionHandler:(void (^)())completionHandler
+- (void)application:(UIApplication *)application handleEventsForBackgroundURLSession:(NSString *)identifier completionHandler:(void (^)(void))completionHandler
 {
     // когда вызывается этот completionHandler, то осуществляется перерисовка нашего UI
     // в переключателе приложений (app switcher),
@@ -336,7 +336,7 @@
 
 - (void)loadFlickrPhotosFromLocalURL:(NSURL *)localFile
                          intoContext:(NSManagedObjectContext *)context
-                 andThenExecuteBlock:(void(^)())whenDone
+                 andThenExecuteBlock:(void(^)(void))whenDone
 {
     if (context) {
         NSArray *photos = [self flickrPhotosAtURL:localFile];
@@ -413,7 +413,7 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
             //  (другой поток может уже послать его при multiple-tasks-at-once реализации)
             if (![downloadTasks count]) {  // остались ли еще какие-нибудь Flickr загрузки?
                 // нет, тогда вовлекаем flickrDownloadBackgroundURLSessionCompletionHandler (если он все еще не nil)
-                void (^completionHandler)() = self.flickrDownloadBackgroundURLSessionCompletionHandler;
+                void (^completionHandler)(void) = self.flickrDownloadBackgroundURLSessionCompletionHandler;
                 self.flickrDownloadBackgroundURLSessionCompletionHandler = nil;
                 if (completionHandler) {
                     completionHandler();
